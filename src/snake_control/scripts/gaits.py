@@ -50,30 +50,42 @@ class JointCmds:
                 self.jnt_cmd_dict[jnt] = A * \
                     np.sin(2.0*np.pi*(d*self.t + (i % 2)*TPO + i*spat_freq))
 
-        def slithering():
+        def slithering(turn=None):
             N = self.num_modules
             w = 0.5
             y = 0.3
             z = 0.7
             A_o = 60 * np.pi / 180
             A_e = 40 * np.pi / 180
+            speed = 5
+            if turn == 'left':
+                Ct = -10
+            elif turn == 'right':
+                Ct = 10
+            else:
+                Ct = 0
             for n, jnt in enumerate(self.joints_list):
                 if n % 2 == 1:
                     x = 1.75
                     o = 1
                     A = A_o
+                    C = Ct * np.pi / 180
                     delta = 0
                 else:
                     x = 3.5
                     o = 2
                     A = A_e
+                    C = 0
                     delta = np.pi / 2
                 Omega = (w + x * 2 / N) * np.pi
                 P = z * n / N + y
 
-                self.jnt_cmd_dict[jnt] = P * A * \
-                    np.sin(Omega * n + o * self.t + delta)
+                self.jnt_cmd_dict[jnt] = C + P * A * \
+                    np.sin(Omega * n + speed * o * self.t + delta)
 
+        def reset():
+            for i, jnt in enumerate(self.joints_list):
+                self.jnt_cmd_dict[jnt] = 0
         self.t += dt
         slithering()
         return self.jnt_cmd_dict
